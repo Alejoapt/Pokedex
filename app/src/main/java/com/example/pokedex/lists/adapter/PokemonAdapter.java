@@ -20,6 +20,7 @@ public class PokemonAdapter extends RecyclerView.Adapter<TrainerViewModel>{
 
     private ArrayList<Pokemon> pokemons;
     private Context context;
+    private OnUserClickListener listener;
 
     public PokemonAdapter(Context context){
         this.context = context;
@@ -49,17 +50,29 @@ public class PokemonAdapter extends RecyclerView.Adapter<TrainerViewModel>{
     public void onBindViewHolder(TrainerViewModel holder, int position) {
             Pokemon p = pokemons.get(position);
             holder.getNameRow().setText(p.getName());
-
             Glide.with(context).load("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + p.getNumber() + ".png").centerCrop()
                 .crossFade()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(holder.getImageRow());
-
-
+            holder.getActionRow().setOnClickListener(
+                    v->{
+                        Pokemon pokemon = pokemons.get(position);
+                        listener.onUserClick(pokemon);
+                    }
+            );
     }
 
     @Override
     public int getItemCount() {
         return pokemons.size();
+    }
+
+    public void setListener(OnUserClickListener listener){
+        this.listener = listener;
+    }
+
+    public interface OnUserClickListener{
+        void onUserClick(Pokemon pokemon);
+
     }
 }

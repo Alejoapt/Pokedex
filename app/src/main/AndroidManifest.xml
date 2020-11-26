@@ -19,6 +19,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.TrainerActivity" />
+        <activity android:name=".activities.ProfileActivity" />
+        <activity android:name=".activities.PokemonActivity" />
+
     </application>
 
 </manifest>

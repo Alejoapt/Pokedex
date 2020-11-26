@@ -3,6 +3,7 @@ package com.example.pokedex.activities;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -42,9 +43,10 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 
-public class TrainerActivity extends AppCompatActivity implements View.OnClickListener {
+public class TrainerActivity extends AppCompatActivity implements View.OnClickListener, PokemonAdapter.OnUserClickListener{
 
     private User myUser;
+    private Pokemon myPokemon;
     private RecyclerView userList;
     private FirebaseFirestore db;
     private FirebaseStorage storage;
@@ -59,6 +61,7 @@ public class TrainerActivity extends AppCompatActivity implements View.OnClickLi
     private Button catchBtn;
     private String path;
     private TextView pokemon_name;
+    private Button actionRow;
     private static final String TAG ="POKEMON";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +77,9 @@ public class TrainerActivity extends AppCompatActivity implements View.OnClickLi
         catchLbl = findViewById(R.id.catchLbl);
         catchBtn = findViewById(R.id.catchBtn);
         userList = findViewById(R.id.userList);
+        actionRow = findViewById(R.id.actionRow);
         pokemonAdapter = new PokemonAdapter(this);
+        pokemonAdapter.setListener(this);
         //adapter = new TrainerAdapter();
         userList.setAdapter(pokemonAdapter);
         userList.setHasFixedSize(true);
@@ -82,7 +87,8 @@ public class TrainerActivity extends AppCompatActivity implements View.OnClickLi
         userList.setLayoutManager(manager);
 
         //Recuperar el user de la actividad pasada
-        myUser = (User) getIntent().getExtras().getSerializable("myUser");
+       // myUser = (User) getIntent().getExtras().getSerializable("myUser");
+        myPokemon = (Pokemon)getIntent().getExtras().getSerializable("myPokemon");
         //Listar usuarios
 
         db = FirebaseFirestore.getInstance();
@@ -126,6 +132,8 @@ public class TrainerActivity extends AppCompatActivity implements View.OnClickLi
             searchPokemon(searchLbl.getText().toString());
         });
 
+
+
         //Habilitar los clicks a items de la lista
         retofit = new Retrofit.Builder()
                 .baseUrl("https://pokeapi.co/api/v2/")
@@ -155,12 +163,13 @@ public class TrainerActivity extends AppCompatActivity implements View.OnClickLi
                     PokemonAnswer pokemonAnswer = response.body();
                     ArrayList<Pokemon> pokemonList = pokemonAnswer.getResults();
                     pokemonAdapter.addPokemon(pokemonList);
-
-
+                    /*
                     for (int i = 0; i < pokemonList.size(); i++){
                         Pokemon p = pokemonList.get(i);
                         Log.e(TAG, "Pokemon: " + p.getName());
                     }
+
+                     */
 
                 }else{
                     Log.e(TAG, " on response " + response.errorBody());
@@ -192,12 +201,30 @@ public class TrainerActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     public void onClick(View view) {
             switch (view.getId()){
+                /*
                 case R.id.actionRow:
-                    Intent intent = new Intent(this, PokemonActivity.class);
+                    Log.e(">>>" , "click on a pokemon");
+
+                    Intent intent = new Intent(this, ProfileActivity.class);
                     intent.putExtra("myUser",this.myUser);
                     startActivity(intent);
+
+
                     break;
 
+                 */
+
             }
+    }
+
+    @Override
+    public void onUserClick(Pokemon pokemonClicked) {
+        Intent intent = new Intent(this, PokemonActivity.class);
+        intent.putExtra("myPokemon", this.myPokemon);
+        intent.putExtra("pokemonClicked",pokemonClicked);
+
+        //intent.putExtra("userClicked", pokemonClicked);
+
+        startActivity(intent);
     }
 }
