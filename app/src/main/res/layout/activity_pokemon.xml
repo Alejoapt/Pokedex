@@ -10,11 +10,11 @@
         android:id="@+id/speed_lbl"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="80dp"
-        android:layout_marginTop="156dp"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="24dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Body2"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/pokemon_name" />
+        app:layout_constraintTop_toBottomOf="@+id/textView11" />
 
     <TextView
         android:id="@+id/textView11"
@@ -42,34 +42,34 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="80dp"
-        android:layout_marginTop="156dp"
+        android:layout_marginTop="24dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Body2"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.54"
+        app:layout_constraintHorizontal_bias="0.346"
         app:layout_constraintStart_toEndOf="@+id/textView5"
-        app:layout_constraintTop_toBottomOf="@+id/pokemon_name" />
+        app:layout_constraintTop_toBottomOf="@+id/textView12" />
 
     <TextView
         android:id="@+id/defense_lbl"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="80dp"
-        android:layout_marginTop="60dp"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="24dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Body2"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/pokemon_name" />
+        app:layout_constraintTop_toBottomOf="@+id/textView5" />
 
     <TextView
         android:id="@+id/attack_lbl"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="80dp"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="24dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Body2"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.54"
+        app:layout_constraintHorizontal_bias="0.346"
         app:layout_constraintStart_toEndOf="@+id/textView5"
-        app:layout_constraintTop_toBottomOf="@+id/pokemon_name" />
+        app:layout_constraintTop_toBottomOf="@+id/textView6" />
 
     <ImageView
         android:id="@+id/imagePokemon"
@@ -83,9 +83,10 @@
 
     <TextView
         android:id="@+id/pokemon_name"
-        android:layout_width="91dp"
+        android:layout_width="0dp"
         android:layout_height="42dp"
         android:layout_marginTop="48dp"
+        android:textAlignment="center"
         android:textAppearance="@style/TextAppearance.AppCompat.Body2"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"

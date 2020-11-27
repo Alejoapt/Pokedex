@@ -4,9 +4,23 @@ import java.io.Serializable;
 
 public class Pokemon implements Serializable {
 
+    private String id;
     private int number;
     private String name;
     private String url;
+    private PokemonStats[] stats;
+
+    public Pokemon() {
+
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public int getNumber() {
         String[] urlPartes = url.split("/");
@@ -32,4 +46,15 @@ public class Pokemon implements Serializable {
     public void setUrl(String url) {
         this.url = url;
     }
+
+
+    public PokemonStats[] getStats() {
+        return stats;
+    }
+
+    public void setStats(PokemonStats[] stats) {
+        this.stats = stats;
+    }
+
+
 }

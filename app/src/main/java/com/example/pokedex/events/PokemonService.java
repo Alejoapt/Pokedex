@@ -13,6 +13,5 @@ public interface PokemonService {
     Call<PokemonAnswer> obtainPokemonList(@Query("limit") int limit, @Query("offset") int offset);
 
 
-
 }
 

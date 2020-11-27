@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.pokedex.comm.HTTPSWebUtilDomi;
 import com.example.pokedex.events.PokemonService;
 import com.example.pokedex.lists.adapter.PokemonAdapter;
 import com.example.pokedex.lists.adapter.TrainerAdapter;
@@ -30,11 +31,13 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.security.Policy;
 import java.util.ArrayList;
 import java.util.UUID;
 
 import com.example.pokedex.R;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.gson.Gson;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -53,124 +56,121 @@ public class TrainerActivity extends AppCompatActivity implements View.OnClickLi
     private TrainerAdapter adapter;
     private PokemonAdapter pokemonAdapter;
     private Retrofit retofit;
-    private Boolean canLoad;
     private int offset;
     private TextView searchLbl;
     private Button searchBtn;
     private TextView catchLbl;
     private Button catchBtn;
-    private String path;
-    private TextView pokemon_name;
-    private Button actionRow;
+    private Pokemon pokemonSearched;
     private static final String TAG ="POKEMON";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pokedex);
 
-
-
         //Configuracion de la lista
-        pokemon_name = findViewById(R.id.pokemon_name);
         searchLbl = findViewById(R.id.searchLbl);
         searchBtn = findViewById(R.id.searchBtn);
         catchLbl = findViewById(R.id.catchLbl);
         catchBtn = findViewById(R.id.catchBtn);
         userList = findViewById(R.id.userList);
-        actionRow = findViewById(R.id.actionRow);
         pokemonAdapter = new PokemonAdapter(this);
         pokemonAdapter.setListener(this);
-        //adapter = new TrainerAdapter();
         userList.setAdapter(pokemonAdapter);
         userList.setHasFixedSize(true);
         LinearLayoutManager manager = new LinearLayoutManager(this);
         userList.setLayoutManager(manager);
-
-        //Recuperar el user de la actividad pasada
-       // myUser = (User) getIntent().getExtras().getSerializable("myUser");
+        myUser = (User) getIntent().getExtras().getSerializable("myUser");
         myPokemon = (Pokemon)getIntent().getExtras().getSerializable("myPokemon");
         //Listar usuarios
-
+        storage = FirebaseStorage.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        /*
-        Query userReference = db.collection("trainers").orderBy("username");
-        userReference.get().addOnCompleteListener(
-                task -> {
-                    adapter.clear();
-                    for (QueryDocumentSnapshot doc : task.getResult()){
-                        User user = doc.toObject(User.class);
-                        adapter.addUser(user);
-                    }
-                }
-        );
-
-         */
-
-
-
-        catchBtn.setOnClickListener(
-                v->{
-                    try {
-                        String name = UUID.randomUUID().toString();
-                        FileInputStream fis = new FileInputStream(new File(path));
-                        storage.getReference().child("pokemons").child(name).putStream(fis).addOnCompleteListener(
-                                task -> {
-                                    if(task.isSuccessful()){
-
-                                    }
-                                }
-                        );
-                    }catch(FileNotFoundException e){
-                        e.printStackTrace();
-                    }
-
-                }
-        );
-        searchBtn.setOnClickListener((v) -> {
-            Log.e(">>>","onClick working");
-            searchPokemon(searchLbl.getText().toString());
-        });
-
-
-
-        //Habilitar los clicks a items de la lista
         retofit = new Retrofit.Builder()
                 .baseUrl("https://pokeapi.co/api/v2/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        canLoad = true;
+
         offset = 0;
 
         obtainData();
 
+
+        Query userReference = db.collection("trainers").document(myUser.getId()).collection("pokemons");
+        userReference.get().addOnCompleteListener(
+                task -> {
+                    pokemonAdapter.clear();
+                    for (QueryDocumentSnapshot doc : task.getResult()){
+                        Pokemon pokemon = doc.toObject(Pokemon.class);
+                        pokemonAdapter.addOnePokemon(pokemon);
+                    }
+                }
+        );
+
+
+        catchBtn.setOnClickListener(
+                v->{
+                    pokemonAdapter.findByName(catchLbl.getText().toString());
+                    Pokemon p = pokemonAdapter.getP();
+                    if (p == null){
+                        Log.e(">>>", "Pokemon is null ");
+                    }else{
+                        Log.e(">>>", "Pokemon is not  null ");
+                    }
+                    Log.e(">>>", "LabelName: " + catchLbl.getText());
+                    Log.e(TAG, "Pokemon: " + p.getName());
+
+                    String pokemonUUID = UUID.randomUUID().toString();
+                    p.setId(pokemonUUID);
+                    db.collection("trainers").document(myUser.getId()).collection("pokemons").document(pokemonUUID).set(p);
+
+                }
+        );
+
+
+        searchBtn.setOnClickListener((v) -> {
+            Log.e(">>>","onClick working");
+            searchPokemon(searchLbl.getText().toString());
+        });
     }
 
-    public void searchPokemon(String pokemonName){
+    private void searchPokemon(String pokemonName) {
+
+        Query pokemonReference = db.collection("trainers").document(myUser.getId()).collection("pokemons");
+        Query query = pokemonReference.whereEqualTo("name",pokemonName);
+        query.get().addOnCompleteListener(
+                task -> {
+                    if (task.isSuccessful()){
+
+                        for (QueryDocumentSnapshot documentSnapshot : task.getResult()){
+                            pokemonSearched = documentSnapshot.toObject(Pokemon.class);
+                            Log.e(">>>", "This is the object: " + pokemonSearched.getName());
+                            Log.e(">>>", "We are searching: " + documentSnapshot.getData());
+                            Intent intent = new Intent(this, PokemonActivity.class);
+                            intent.putExtra("pokemonClicked",pokemonSearched);
+                            startActivity(intent);
+                            break;
+                        }
+                    }else{
+                        Log.e(">>>", "Pokemon doesn´t exist");
+                    }
+                }
+        );
 
     }
 
     public void obtainData(){
         PokemonService service = retofit.create(PokemonService.class);
-        Call<PokemonAnswer> pokemonAnswerCall = service.obtainPokemonList(20, offset);
+        Call<PokemonAnswer> pokemonAnswerCall = service.obtainPokemonList(50, offset);
         pokemonAnswerCall.enqueue(new Callback<PokemonAnswer>() {
             @Override
             public void onResponse(Call<PokemonAnswer> call, Response<PokemonAnswer> response) {
-                //canLoad = true;
                 pokemonAdapter.clear();
                 if (response.isSuccessful()){
                     PokemonAnswer pokemonAnswer = response.body();
                     ArrayList<Pokemon> pokemonList = pokemonAnswer.getResults();
                     pokemonAdapter.addPokemon(pokemonList);
-                    /*
-                    for (int i = 0; i < pokemonList.size(); i++){
-                        Pokemon p = pokemonList.get(i);
-                        Log.e(TAG, "Pokemon: " + p.getName());
-                    }
-
-                     */
-
                 }else{
                     Log.e(TAG, " on response " + response.errorBody());
                 }
@@ -184,35 +184,9 @@ public class TrainerActivity extends AppCompatActivity implements View.OnClickLi
         });
     }
 
-    //Se activa cuando damos click a un item de la lista
-    /*
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        //User userClicked = users.get(position);
-        Intent intent = new Intent(this, ChatActivity.class);
-
-        intent.putExtra("myUser",this.myUser);
-        //intent.putExtra("userClicked",userClicked);
-
-        startActivity(intent);
-    }
-
-     */
-
     @Override
     public void onClick(View view) {
             switch (view.getId()){
-                /*
-                case R.id.actionRow:
-                    Log.e(">>>" , "click on a pokemon");
-
-                    Intent intent = new Intent(this, ProfileActivity.class);
-                    intent.putExtra("myUser",this.myUser);
-                    startActivity(intent);
-
-
-                    break;
-
-                 */
 
             }
     }
@@ -221,10 +195,10 @@ public class TrainerActivity extends AppCompatActivity implements View.OnClickLi
     public void onUserClick(Pokemon pokemonClicked) {
         Intent intent = new Intent(this, PokemonActivity.class);
         intent.putExtra("myPokemon", this.myPokemon);
+        intent.putExtra("myUser", myUser);
         intent.putExtra("pokemonClicked",pokemonClicked);
-
-        //intent.putExtra("userClicked", pokemonClicked);
-
         startActivity(intent);
     }
+
+
 }
